@@ -32,7 +32,7 @@ class log extends Command
         //     $response = Http::get('https://thewhatsappmarketing.com/api/send', [
         //         'number' => '91808',
         //         'type' => 'text',
-        //         'message' => 'kaisa hai lavde',
+        //         'message' => 'hi',
         //         'instance_id' => '65B654523DFFD',
         //         'access_token' => '65742a6cedff6',
         //     ]);
