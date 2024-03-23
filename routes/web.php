@@ -13,4 +13,4 @@ use Illuminate\Support\Facades\Route;
 |
 */
 Route::redirect('/', '/login', 301);
-require __DIR__."./WebsiteRoute/SuperAdmin/web.php";
+require __DIR__."/WebsiteRoute/SuperAdmin/web.php";

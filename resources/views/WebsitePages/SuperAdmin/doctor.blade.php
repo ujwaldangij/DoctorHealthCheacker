@@ -121,7 +121,17 @@
                     <td>{{ $doc->test_cycle }}</td>
                     <td class="text-center footable-visible footable-last-column">
                         <div class="btn-group">
-                            <a href="{{ route('choose_id', ['id'=>$doc->id]) }}" class="btn-info btn btn-xs">Choose</a>
+                            {{-- @if ($doc->test_cycle == 1 or is_null($doc->test_cycle))
+                            <a href="{{ route('choose_id', ['id' => $doc->id]) }}" class="btn-info btn btn-xs">choose for second cycle</a>
+                            @else
+                                <a href="{{ route('choose_id', ['id' => $doc->id]) }}" class="btn-info btn btn-xs">Choose</a>
+                            @endif --}}
+                            @if (is_null($doc->test_cycle))
+                            <a href="{{ route('choose_id', ['id' => $doc->id]) }}" class="btn-info btn btn-xs">Choose</a>
+                            @elseif ($doc->test_cycle == 1)
+                                <a href="{{ route('choose_id', ['id' => $doc->id]) }}" class="btn-info btn btn-xs">Choose for second cycle</a>
+                            @endif
+                            {{-- <a href="{{ route('choose_id', ['id'=>$doc->id]) }}" class="btn-info btn btn-xs">Choose</a> --}}
                             @if (session('user')->role == 1)
                             <a href="{{ route('choose_id_edit', ['id'=>$doc->id]) }}" class="btn-white btn btn-xs">Edit</a>
                             <a href="{{ route('choose_id_delete', ['id'=>$doc->id]) }}" class="btn-danger btn btn-xs">Delete</a>

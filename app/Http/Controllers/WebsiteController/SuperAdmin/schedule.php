@@ -21,6 +21,7 @@ use App\Models\WebsiteModels\SuperAdmin\schedule as sud;
 use App\Models\WebsiteModels\SuperAdmin\doctor as SuperAdminDoctor;
 use App\Models\WebsiteModels\SuperAdmin\schedule as SuperAdminSchedule;
 use App\Models\WebsiteModels\SuperAdmin\Notification as SuperAdminNotification;
+use App\Models\WebsiteModels\SuperAdmin\reminder;
 
 class schedule extends Controller
 {
@@ -39,6 +40,8 @@ class schedule extends Controller
             $menu = menu::whereIn('id', [1, 2, 3, 4])->get();
         } elseif ($user  == 3 or $user == 4) {
             $menu = menu::whereIn('id', [2])->get();
+        } elseif ($user == 5) {
+            $menu = menu::whereIn('id', [2, 3, 4])->get();
         } else {
             $menu = new menu();
         }
@@ -48,10 +51,10 @@ class schedule extends Controller
             $k = DB::select('SELECT *, schedule.id as s_id FROM schedule JOIN doctor ON schedule.doctor_id = doctor.id ORDER BY schedule.id DESC');
         } elseif (session('user')->role == 3) {
             $k = DB::select("SELECT *, schedule.id as s_id FROM schedule JOIN doctor ON schedule.doctor_id = doctor.id
-            where doctor.lab_partners ='Pythokind' ORDER BY schedule.id DESC");
+            where schedule.lab_partners ='Pythokind' ORDER BY schedule.id DESC");
         } elseif (session('user')->role == 4) {
             $k = DB::select("SELECT *, schedule.id as s_id FROM schedule JOIN doctor ON schedule.doctor_id = doctor.id
-             and doctor.lab_partners ='thyrocare' ORDER BY schedule.id DESC");
+             and schedule.lab_partners ='thyrocare' ORDER BY schedule.id DESC");
         } elseif (session('user')->role == 5) {
             $qy = "
                 SELECT
@@ -63,6 +66,8 @@ class schedule extends Controller
                 schedule.agent_schedule_datetime,
                 schedule.result,
                 schedule.upload_report,
+                schedule.d3result,
+                schedule.creatinine,
                 schedule.user_id,
                 schedule.accept_reject,
                 schedule.created_at,
@@ -80,8 +85,8 @@ class schedule extends Controller
                 doctor.state,
                 doctor.city,
                 doctor.pincode,
-                doctor.lab_partners,
-                doctor.test_cycle,
+                schedule.lab_partners,
+                schedule.test_cycle,
                 doctor.created_at,
                 doctor.updated_at,
                 doctor.esign,
@@ -94,6 +99,7 @@ class schedule extends Controller
             JOIN credentials ON credentials.id = schedule.user_id
             LEFT JOIN manager ON manager.id = credentials.manager
             WHERE manager = '" . session('user')->email . "'
+            ORDER BY schedule.id DESC
             ";
             $k = DB::select($qy);
         } else {
@@ -146,8 +152,8 @@ class schedule extends Controller
         doctor.state AS doctor_state,
         doctor.city AS doctor_city,
         doctor.pincode AS doctor_pincode,
-        doctor.lab_partners AS doctor_lab_partners,
-        doctor.test_cycle AS doctor_test_cycle,
+        schedule.lab_partners AS doctor_lab_partners,
+        schedule.test_cycle AS doctor_test_cycle,
         doctor.esign AS doctor_esign
     FROM 
         schedule
@@ -222,6 +228,8 @@ class schedule extends Controller
             "schedule_id" => ["required"],
             "result" => ["required"],
             "report" => ["required"],
+            "d3result" => ["required"],
+            "creatinine" => ["required"],
         ]);
         if ($validate->fails()) {
             return redirect()->back()->withErrors($validate)->withInput();
@@ -238,15 +246,30 @@ class schedule extends Controller
                 mkdir($publicPath, 0755, true);
             }
             $file->move($publicPath, $fileName);
+
+            $file1 = $request->file('creatinine');
+            $fileName1 = time() . '_' . str_replace(' ', '_', $file1->getClientOriginalName());
+            // $file->storeAs('public/creatinine', $fileName);
+            // $base64File = base64_encode(file_get_contents($file->path()));
+            // dd($base64File);
+            $fileName1 = time() . '_' . str_replace(' ', '_', $file1->getClientOriginalName());
+            $publicPath1 = public_path('creatinine');
+            if (!file_exists($publicPath1)) {
+                mkdir($publicPath1, 0755, true);
+            }
+            $file1->move($publicPath1, $fileName1);
+
             DB::beginTransaction();
             $data = SuperAdminSchedule::where('id', $request['schedule_id'])->first();
             SuperAdminSchedule::where('id', $request['schedule_id'])->update([
                 'result' => $request['result'],
                 'upload_report' => $fileName,
-                'status' => 'report upload',
+                'status' => 'report uploaded',
+                'd3result' => $request['d3result'],
+                'creatinine' => $fileName1,
             ]);
             track::create([
-                'status' => 'report upload',
+                'status' => 'report uploaded',
                 'doctor_id' => $data->doctor_id,
                 'created_at' => now(),
                 'updated_at' => now(),
@@ -343,7 +366,7 @@ class schedule extends Controller
                 'result' => $request['result'],
                 'agent_contact' => $request['agent_contact'],
                 'upload_report' => $fileName,
-                'status' => 'report upload',
+                'status' => 'report uploaded',
             ]);
             DB::commit();
             return redirect()->route('schedule');
@@ -367,6 +390,8 @@ class schedule extends Controller
             $menu = menu::whereIn('id', [1, 2, 3, 4])->get();
         } elseif ($user  == 3 or $user == 4) {
             $menu = menu::whereIn('id', [2])->get();
+        } elseif ($user == 5) {
+            $menu = menu::whereIn('id', [2, 3, 4])->get();
         } else {
             $menu = new menu();
         }
@@ -384,6 +409,8 @@ class schedule extends Controller
                 schedule.agent_schedule_datetime,
                 schedule.result,
                 schedule.upload_report,
+                schedule.d3result,
+                schedule.creatinine,
                 schedule.user_id,
                 schedule.accept_reject,
                 schedule.created_at,
@@ -401,8 +428,8 @@ class schedule extends Controller
                 doctor.state,
                 doctor.city,
                 doctor.pincode,
-                doctor.lab_partners,
-                doctor.test_cycle,
+                schedule.lab_partners,
+                schedule.test_cycle,
                 doctor.created_at,
                 doctor.updated_at,
                 doctor.esign,
@@ -450,6 +477,8 @@ class schedule extends Controller
             $menu = menu::whereIn('id', [1, 2, 3, 4])->get();
         } elseif ($user  == 3 or $user == 4) {
             $menu = menu::whereIn('id', [2])->get();
+        } elseif ($user == 5) {
+            $menu = menu::whereIn('id', [2, 3, 4])->get();
         } else {
             $menu = new menu();
         }
@@ -500,20 +529,38 @@ class schedule extends Controller
             $menu = menu::whereIn('id', [1, 2, 3, 4])->get();
         } elseif ($user  == 3 or $user == 4) {
             $menu = menu::whereIn('id', [2])->get();
+        } elseif ($user == 5) {
+            $menu = menu::whereIn('id', [2, 3, 4])->get();
         } else {
             $menu = new menu();
         }
         $notifications = SuperAdminNotification::all();
         if (session('user')->role == 1) {
-            $k = DB::select("SELECT track.*, doctor.*, schedule.*,track.id as track_data_id,doctor.name as doctor_name 
-            FROM track
-            JOIN doctor ON track.doctor_id = doctor.id
-            JOIN schedule ON track.doctor_id = schedule.doctor_id
-            WHERE (track.doctor_id, track.id) IN (
-                SELECT doctor_id, MAX(id) AS max_id
+            // $k = DB::select("SELECT track.*, doctor.*, schedule.*,track.id as track_data_id,doctor.name as doctor_name 
+            // FROM track
+            // JOIN doctor ON track.doctor_id = doctor.id
+            // JOIN schedule ON track.doctor_id = schedule.doctor_id
+            // WHERE (track.doctor_id, track.id) IN (
+            //     SELECT doctor_id, MAX(id) AS max_id
+            //     FROM track
+            //     GROUP BY doctor_id
+            // );");
+            $k = DB::select("
+                SELECT track.*, doctor.*, schedule.*, track.id as track_data_id, doctor.name as doctor_name 
                 FROM track
-                GROUP BY doctor_id
-            );");
+                JOIN doctor ON track.doctor_id = doctor.id
+                JOIN (
+                    SELECT doctor_id, MAX(test_cycle) AS max_test_cycle
+                    FROM schedule
+                    GROUP BY doctor_id
+                ) AS max_schedule ON track.doctor_id = max_schedule.doctor_id
+                JOIN schedule ON max_schedule.doctor_id = schedule.doctor_id AND max_schedule.max_test_cycle = schedule.test_cycle
+                WHERE (track.doctor_id, track.id) IN (
+                    SELECT doctor_id, MAX(id) AS max_id
+                    FROM track
+                    GROUP BY doctor_id
+                );
+            ");
         } elseif (session('user')->role == 5) {
             $qy = "
             SELECT 
@@ -547,7 +594,18 @@ class schedule extends Controller
             ";
             $k = DB::select($qy);
         } else {
-            $k = DB::select("SELECT track.*, doctor.*, schedule.user_id ,track.id as track_data_id,doctor.name as doctor_name FROM track JOIN doctor ON track.doctor_id = doctor.id JOIN schedule ON track.doctor_id = schedule.doctor_id WHERE (track.doctor_id, track.id) IN ( SELECT doctor_id, MAX(id) AS max_id FROM track GROUP BY doctor_id ) AND schedule.user_id = " . session('user')->id);
+            // $k = DB::select("SELECT track.*, doctor.*, schedule.user_id ,track.id as track_data_id,doctor.name as doctor_name FROM track JOIN doctor ON track.doctor_id = doctor.id JOIN schedule ON track.doctor_id = schedule.doctor_id WHERE (track.doctor_id, track.id) IN ( SELECT doctor_id, MAX(id) AS max_id FROM track GROUP BY doctor_id ) AND schedule.user_id = " . session('user')->id);
+            $k = DB::select("
+            SELECT track.*, doctor.*, schedule.user_id ,track.id as track_data_id,doctor.name as doctor_name 
+            FROM track 
+            JOIN doctor ON track.doctor_id = doctor.id 
+            JOIN (
+                SELECT doctor_id, MAX(id) AS max_id 
+                FROM track 
+                GROUP BY doctor_id 
+            ) AS max_track ON track.doctor_id = max_track.doctor_id AND track.id = max_track.max_id 
+            JOIN schedule ON track.doctor_id = schedule.doctor_id 
+            WHERE schedule.user_id = " . session('user')->id);
         }
         return view(
             'WebsitePages.SuperAdmin.track',
@@ -575,6 +633,8 @@ class schedule extends Controller
             $menu = menu::whereIn('id', [1, 2, 3, 4])->get();
         } elseif ($user  == 3 or $user == 4) {
             $menu = menu::whereIn('id', [2])->get();
+        } elseif ($user == 5) {
+            $menu = menu::whereIn('id', [2, 3, 4])->get();
         } else {
             $menu = new menu();
         }
@@ -626,9 +686,9 @@ class schedule extends Controller
                     s.user_id,
                     CASE 
                         WHEN t.status = 'Dr Choose' THEN 'fa-stethoscope'
-                        WHEN t.status = 'schedule' THEN 'fa-tachometer'
+                        WHEN t.status = 'scheduled' THEN 'fa-tachometer'
                         WHEN t.status = 'agent align' THEN 'fa-child'
-                        WHEN t.status = 'report upload' THEN 'fa-fax'
+                        WHEN t.status = 'report uploaded' THEN 'fa-fax'
                         ELSE NULL
                     END AS icon
                 FROM 
@@ -657,7 +717,7 @@ class schedule extends Controller
                 SELECT 
                     '' as id,
                     '' as doctor_id,
-                    'report upload' as status,
+                    'report uploaded' as status,
                     '' as created_at,
                     '' as updated_at,
                     '' as name,
@@ -690,9 +750,9 @@ class schedule extends Controller
                     s.user_id,
                     CASE 
                         WHEN t.status = 'Dr Choose' THEN 'fa-stethoscope'
-                        WHEN t.status = 'schedule' THEN 'fa-tachometer'
+                        WHEN t.status = 'scheduled' THEN 'fa-tachometer'
                         WHEN t.status = 'agent align' THEN 'fa-child'
-                        WHEN t.status = 'report upload' THEN 'fa-fax'
+                        WHEN t.status = 'report uploaded' THEN 'fa-fax'
                         ELSE NULL
                     END AS icon
                 FROM 
@@ -722,7 +782,7 @@ class schedule extends Controller
                 SELECT 
                     '' as id,
                     '' as doctor_id,
-                    'report upload' as status,
+                    'report uploaded' as status,
                     '' as created_at,
                     '' as updated_at,
                     '' as name,
@@ -782,8 +842,8 @@ class schedule extends Controller
         doctor.state AS doctor_state,
         doctor.city AS doctor_city,
         doctor.pincode AS doctor_pincode,
-        doctor.lab_partners AS doctor_lab_partners,
-        doctor.test_cycle AS doctor_test_cycle,
+        schedule.lab_partners AS doctor_lab_partners,
+        schedule.test_cycle AS doctor_test_cycle,
         doctor.esign AS doctor_esign
     FROM 
         schedule
@@ -820,6 +880,89 @@ class schedule extends Controller
             DB::rollBack();
             FacadesLog::error('Error updating add_person_regect_post: ' . $e->getMessage());
             return back()->withErrors(['issue' => 'add_person_regect_post failed '])->withInput();
+        }
+    }
+    public function schedule_reminder_get($id)
+    {
+        $title = SystemPage::where('name', 'schedule_reminder_get')->first();
+        $doctor_data = SuperAdminSchedule::where('id', $id)->first();
+        $compony_details = ComponyDetail::where('id', '1')->first();
+        if (empty($compony_details)) {
+            $compony_details['name'] = 'demo';
+            $compony_details['developed'] = 'demo';
+        }
+        $assign_fibo = DB::select("SELECT 
+        schedule.id AS schedule_id,
+        schedule.doctor_id AS schedule_doctor_id,
+        schedule.status AS schedule_status,
+        schedule.agent AS schedule_agent,
+        schedule.agent_contact AS schedule_agent_contact,
+        schedule.agent_schedule_datetime AS schedule_agent_schedule_datetime,
+        schedule.result AS schedule_result,
+        schedule.upload_report AS schedule_upload_report,
+        schedule.user_id AS schedule_user_id,
+        schedule.created_at AS schedule_created_at,
+        schedule.updated_at AS schedule_updated_at,
+        doctor.id AS doctor_id,
+        doctor.name AS doctor_name,
+        doctor.specialties AS doctor_specialties,
+        doctor.contact AS doctor_contact,
+        doctor.email AS doctor_email,
+        doctor.align AS doctor_align,
+        doctor.session_user_id AS doctor_session_user_id,
+        doctor.agree_disagree AS doctor_agree_disagree,
+        doctor.sample_collection_date AS doctor_sample_collection_date,
+        doctor.sample_collection_time AS doctor_sample_collection_time,
+        doctor.address_line AS doctor_address_line,
+        doctor.state AS doctor_state,
+        doctor.city AS doctor_city,
+        doctor.pincode AS doctor_pincode,
+        schedule.lab_partners AS doctor_lab_partners,
+        schedule.test_cycle AS doctor_test_cycle,
+        doctor.esign AS doctor_esign
+    FROM 
+        schedule
+    INNER JOIN 
+        doctor ON schedule.doctor_id = doctor.id
+    WHERE 
+        schedule.id = :id", ['id' => $id]);
+        return view(
+            'WebsitePages.SuperAdmin.schedule_reminder_get',
+            [
+                "title" => (!empty($title->title)) ? $title->title : 'schedule_reminder_get',
+                "compony_details" => $compony_details,
+                'doctor_data' => $doctor_data,
+                'assign_fibo' => $assign_fibo[0],
+            ]
+        );
+    }
+    public function schedule_reminder_post(Request $request)
+    {
+        $validate = Validator::make($request->all(), [
+            "start_date" => ["required"],
+            "end_date" => ["required"],
+            "message" => ["required"],
+        ]);
+        if ($validate->fails()) {
+            return redirect()->back()->withErrors($validate)->withInput();
+        }
+        try {
+            // dd($request->collect());
+            DB::beginTransaction();
+            reminder::create([
+                'schedule_id' => $request['schedule_id'],
+                'start_date' => $request['start_date'],
+                'end_date' => $request['end_date'],
+                'message' => $request['message'],
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+            DB::commit();
+            return redirect()->route('medicine_reminder');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            FacadesLog::error('Error updating add_person_post: ' . $e->getMessage());
+            return back()->withErrors(['issue' => 'add_person_post failed '])->withInput();
         }
     }
 }

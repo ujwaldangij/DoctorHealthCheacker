@@ -30,6 +30,7 @@
 @endsection
 @section('body')
 <div class="row justify-content-around">
+    @if (session('user')->role != 3 && session('user')->role != 4)
     <div class="col-lg-12" style="background-color: #f9fce4;"> <!-- Add background color here -->
         <div class="ibox">
             <div class="ibox-title">
@@ -43,6 +44,22 @@
             </div>
         </div>
     </div>
+    @endif
+    @if (session('user')->role == 3 or session('user')->role == 4)
+    <div class="col-lg-12" style="background-color: #f9fce4;"> <!-- Add background color here -->
+        <div class="ibox">
+            <div class="ibox-title">
+                <div class="ibox-tools">
+                </div>
+                <h5>Total Scheduled</h5>
+            </div>
+            <div class="ibox-content">
+                <h1 class="no-margins">{{ $schedule_count121 }}</h1>
+                <small>Total Dr</small>
+            </div>
+        </div>
+    </div>
+    @endif
     @if (session('user')->role != 3 && session('user')->role != 4)
     <div class="col-lg-6 " style="background-color: #edebf5;"> <!-- Add background color here -->
         <div class="ibox">

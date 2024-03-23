@@ -11,7 +11,19 @@ class schedule extends Model
     protected $table = "schedule";
     protected $primaryKey = "id";
     protected $fillable = [
-        'doctor_id','status','agent','result','upload_report','created_at','updated_at','user_id','accept_reject'
+        'doctor_id',
+        'status',
+        'agent',
+        'result',
+        'upload_report',
+        'created_at',
+        'updated_at',
+        'user_id',
+        'accept_reject',
+        'lab_partners',
+        'test_cycle',
+        'd3result',
+        'creatinine',
     ];
     protected $nullable = [
         'accept_reject',

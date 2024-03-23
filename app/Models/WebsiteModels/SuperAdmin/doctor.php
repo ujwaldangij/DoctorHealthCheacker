@@ -48,8 +48,7 @@ class doctor extends Model
         'state',
         'city',
         'pincode',
-        'lab_partners',
-        'test_cycle',
+        'user_mr',
         'esign',
     ];
 }

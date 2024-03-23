@@ -41,6 +41,8 @@ Route::controller(schedule::class)->middleware(['CheckUser'])->group(function ()
     Route::post("/schedule_id_edit_post/{id}","schedule_id_edit_post")->name('schedule_id_edit_post');
     Route::get("/medicine_reminder","medicine_reminder")->name('medicine_reminder');
     Route::get("/medicine_reminder/{id}","medicine_reminder_get")->name('medicine_reminder_get');
+    Route::get("/schedule_reminder_get/{id}","schedule_reminder_get")->name('schedule_reminder_get');
+    Route::post("/schedule_reminder_post","schedule_reminder_post")->name('schedule_reminder_post');
     Route::get("/track","track");
     Route::get("/track/{id}","track_id")->name('track_id');
 });

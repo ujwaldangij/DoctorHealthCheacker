@@ -71,7 +71,7 @@
         <div class="col-lg-12">
         <div class="ibox ">
             <div class="ibox-title">
-                <h5>Schedule</h5>
+                <h5>Scheduled</h5>
                 <div class="ibox-tools">
                     <a class="collapse-link">
                         <i class="fa fa-chevron-up"></i>
@@ -104,8 +104,10 @@
                 <th>agent contact</th>
                 <th>agent schedule datetime</th>
                 <th>Accept Reject Lab</th>
-                <th>result</th>
-                <th>upload report</th>
+                <th>D3 Result</th>
+                <th>D3 uploaded Report</th>
+                <th>Creatinine Result</th>
+                <th>Creatinine Report</th>
                 @if (session('user')->role != 2 and session('user')->role != 5)
                     <th>Action</th>
                 @endif
@@ -150,6 +152,23 @@
                     @else
                         <td>{{ $doc->upload_report }}</td>
                     @endif
+                    <td>
+                        @if (!empty($doc->d3result))
+                            @if($doc->d3result < 25)
+                                <button class="btn btn-danger">{{ $doc->d3result }}</button>
+                            @else
+                                <button class="btn btn-success">{{ $doc->d3result }}</button>
+                            @endif
+                        @endif
+                    </td>
+                    {{-- <td>{{ $doc->upload_report }}</td> --}}
+                    @if (!empty($doc->creatinine))
+                        <td>
+                            <a href="{{ asset('creatinine/' . $doc->creatinine) }}" target="_blank">Open File</a>
+                        </td>
+                    @else
+                        <td>{{ $doc->creatinine }}</td>
+                    @endif
                     @if (session('user')->role != 2 and session('user')->role != 5 )
                     <td class="text-center footable-visible footable-last-column text-uppercase">
                         <div class="btn-group">
@@ -168,8 +187,8 @@
                     </td>
                     @endif
                     <td class="footable-vis2ible text-uppercase" style="">
-                        @if ($doc->status == 'schedule')
-                            <span class="label label-warning">schedule</span>
+                        @if ($doc->status == 'scheduled')
+                            <span class="label label-warning">scheduled</span>
                         @endif
                         @if ($doc->status == 'agent align')
                             <span class="label label-danger">Assign Fibo</span>
@@ -177,8 +196,8 @@
                         @if ($doc->status == 'medicine reminder')
                             <span class="label label-primary">medicine reminder</span>
                         @endif
-                        @if ($doc->status == 'report upload')
-                            <span class="label label-info">report upload</span>
+                        @if ($doc->status == 'report uploaded')
+                            <span class="label label-info">report uploaded</span>
                         @endif
                     </td>
                 </tr>
