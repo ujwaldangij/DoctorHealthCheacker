@@ -24,6 +24,10 @@ return new class extends Migration
             $table->string('upload_report');
             $table->string('user_id');
             $table->string('accept_reject')->nullable();
+            $table->string('lab_partners')->nullable();
+            $table->string('test_cycle')->nullable();
+            $table->string('d3result')->nullable();
+            $table->string('creatinine')->nullable();
             $table->timestamps();
         });
     }

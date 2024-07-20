@@ -41,6 +41,27 @@
                     {{ $message }}
                 @enderror
             </p>
+            <h2 class="text-center text-capitalize">Creatinine Reports</h2>
+            {{-- !from input field d3result --}}
+            <div class="form-group @error('d3result'){{ "has-error" }} @enderror">
+                <input type="text" class="form-control" placeholder="Enter Your d3result" name="d3result" id="d3result"
+                    value="{{ old('d3result', $doctor_data->d3result ?? '') }}">
+            </div>
+            <p class="py-0 text-danger text-small" style="text-align-last : left !important">
+                @error('d3result')
+                    {{ $message }}
+                @enderror
+            </p>
+            {{-- !from input field creatinine --}}
+            <div class="form-group @error('creatinine'){{ "has-error" }} @enderror">
+                <input type="file" class="form-control" placeholder="Enter Your creatinine" name="creatinine" id="creatinine"
+                    value="{{ old('creatinine', $doctor_data->creatinine ?? '') }}" accept=".pdf, .jpg, .jpeg, .png">
+            </div>
+            <p class="py-0 text-danger text-small" style="text-align-last : left !important">
+                @error('creatinine')
+                    {{ $message }}
+                @enderror
+            </p>
             <button type="submit" class="btn btn-primary block full-width m-b">Submit</button>
         </form>
         <p class="m-t"> <small>{{ $compony_details['name'] }} is developed by {{ $compony_details['developed'] }} &copy;

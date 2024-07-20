@@ -99,8 +99,8 @@
                     <td>{{ $doc->track_data_id }}</td>
                     <td>{{ $doc->doctor_id }}</td>
                     <td class="footable-vis2ible text-uppercase" style="">
-                        @if ($doc->status == 'schedule')
-                            <span class="label label-warning">schedule</span>
+                        @if ($doc->status == 'scheduled')
+                            <span class="label label-warning">scheduled</span>
                         @endif
                         @if ($doc->status == 'agent align')
                             <span class="label label-danger">Assign Fibo</span>
@@ -108,8 +108,8 @@
                         @if ($doc->status == 'medicine reminder')
                             <span class="label label-primary">medicine reminder</span>
                         @endif
-                        @if ($doc->status == 'report upload')
-                            <span class="label label-info">report upload</span>
+                        @if ($doc->status == 'report uploaded')
+                            <span class="label label-info">report uploaded</span>
                         @endif
                     </td>
                     <td>{{ $doc->doctor_name }}</td>

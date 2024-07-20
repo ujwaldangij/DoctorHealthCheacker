@@ -32,13 +32,65 @@ class doctor extends Controller
         $menu2 = new menu();
         $user =  session('user')->role;
         if ($user  == 2) {
-            $menu = menu::whereIn('id', [1,2, 3, 4])->get();
+            $menu = menu::whereIn('id', [1, 2, 3, 4])->get();
         } elseif ($user  == 3 or $user == 4) {
             $menu = menu::whereIn('id', [2])->get();
+        } elseif ($user == 5) {
+            $menu = menu::whereIn('id', [2, 3, 4])->get();
         } else {
             $menu = new menu();
         }
         $notifications = SuperAdminNotification::all();
+        if (session('user')->role == 5) {
+            $dataPut = DB::select('
+                    SELECT doctor.*, schedule.lab_partners, schedule.test_cycle
+                    FROM doctor
+                    JOIN (
+                        SELECT doctor_id, lab_partners, test_cycle
+                        FROM schedule
+                        WHERE (doctor_id, test_cycle) IN (
+                            SELECT doctor_id, MAX(test_cycle) AS max_test_cycle
+                            FROM schedule
+                            GROUP BY doctor_id
+                        )
+                    ) AS schedule ON doctor.id = schedule.doctor_id
+                    WHERE doctor.user_mr = ?
+                    ORDER BY doctor.id DESC;
+                ', [session('user')->manager]);
+        }elseif (session('user')->role == 2) {
+            $dataPut = DB::select('
+                SELECT doctor.*, schedule.lab_partners, schedule.test_cycle
+                FROM doctor
+                LEFT JOIN (
+                    SELECT doctor_id, lab_partners, test_cycle
+                    FROM schedule
+                    WHERE (doctor_id, test_cycle) IN (
+                        SELECT doctor_id, MAX(test_cycle) AS max_test_cycle
+                        FROM schedule
+                        GROUP BY doctor_id
+                    )
+                ) AS schedule ON doctor.id = schedule.doctor_id
+                WHERE doctor.session_user_id = ?
+                ORDER BY doctor.id DESC;
+            ', [session('user')->id]);
+        }  
+        else {
+            $dataPut = DB::select('
+                SELECT doctor.*, schedule.lab_partners, schedule.test_cycle
+                FROM doctor
+                LEFT JOIN (
+                    SELECT doctor_id, lab_partners, test_cycle
+                    FROM schedule
+                    WHERE (doctor_id, test_cycle) IN (
+                        SELECT doctor_id, MAX(test_cycle) AS max_test_cycle
+                        FROM schedule
+                        GROUP BY doctor_id
+                    )
+                ) AS schedule ON doctor.id = schedule.doctor_id
+                ORDER BY doctor.id DESC;
+            ');
+        }
+        // dd($dataPut[0]->test_cycle);
         return view(
             'WebsitePages.SuperAdmin.doctor',
             [
@@ -47,7 +99,7 @@ class doctor extends Controller
                 "menu" => $menu->all(),
                 "sub_menu" => $menu2->getMenuWithSubmenus(),
                 'notifications' => $notifications,
-                'doctor' => SuperAdminDoctor::orderBy('id', 'desc')->get(),
+                'doctor' => $dataPut,
             ]
         );
     }
@@ -87,14 +139,21 @@ class doctor extends Controller
             $rules['lab_partners'] = ["required"];
             $rules['test_cycle'] = ["required"];
             $rules['esign'] = ["required"];
-            
+
             $validate = Validator::make($request->all(), $rules);
             if ($validate->fails()) {
                 return redirect()->back()->withErrors($validate)->withInput();
             }
             try {
+                if ($request['test_cycle'] == 2) {
+                    try {
+                        DB::delete("DELETE FROM track WHERE doctor_id = ?", [$request['doctor_id']]);
+                    } catch (\Throwable $e) {
+                    }
+                }
                 DB::beginTransaction();
                 // Your update logic here
+                // dd(session('user')->manager);
                 SuperAdminDoctor::where('id', $request->doctor_id)->update([
                     'name' => $request->Doctor_name,
                     'specialties' => $request->specialties,
@@ -109,27 +168,28 @@ class doctor extends Controller
                     'state' => $request->state,
                     'city' => $request->city,
                     'pincode' => $request->pincode,
-                    'lab_partners' => $request->lab_partners,
-                    'test_cycle' => $request->test_cycle,
                     'esign' => $request->esign,
+                    'user_mr' => session('user')->manager
                 ]);
                 track::create([
-                    'status' => 'schedule',
+                    'status' => 'scheduled',
                     'doctor_id' => $request['doctor_id'],
                     'created_at' => now(),
                     'updated_at' => now(),
                 ]);
                 schedule::create([
                     'doctor_id' => $request['doctor_id'],
-                    'status' => 'schedule',
+                    'status' => 'scheduled',
                     'agent' => '',
                     'result' => '',
                     'upload_report' => '',
                     'user_id' => session('user')->id,
+                    'lab_partners' => $request->lab_partners,
+                    'test_cycle' => $request->test_cycle,
                 ]);
                 // Commit the transaction if everything is successful
                 DB::commit();
-    
+
                 // Success response or redirection
                 return redirect()->route('choose_doctor');
             } catch (\Exception $e) {
@@ -137,7 +197,7 @@ class doctor extends Controller
                 FacadesLog::error('Error updating postchooseid: ' . $e->getMessage());
                 return back()->withErrors(['issue' => 'Update failed postchooseid'])->withInput();
             }
-        }else{
+        } else {
             $validate = Validator::make($request->all(), [
                 "agree_disagree" => ["required"],
                 // "Doctor_name" => ["required"],
@@ -159,6 +219,7 @@ class doctor extends Controller
                     'align' => 'no',
                     'session_user_id' => session('user')->id,
                     'agree_disagree' => $request->agree_disagree,
+                    'user_mr' => session('user')->manager
                 ]);
                 DB::commit();
                 // Success response or redirection

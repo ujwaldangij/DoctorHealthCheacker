@@ -6,6 +6,7 @@
 @endsection
 @section('content')
     <div>
+        <img src="{{ asset('extra/logo.png') }}" alt="Logo">
         <h3>Welcome to {{ $title }} page</h3>
         <p>{{ $title }} in. To see it in action.</p>
         <h4><b>@error('issue'){{ $message }}@enderror</b></h4>

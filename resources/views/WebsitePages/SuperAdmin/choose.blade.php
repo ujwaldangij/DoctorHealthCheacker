@@ -14,6 +14,7 @@
                 @enderror
             </b></h4>
             {{-- @dump($errors->all()) --}}
+            {{-- @dd($doctor_data) --}}
         <form class="m-t" role="form" action="{{ route('postchooseid', $doctor_data->id) }}" method="POST"
             autocomplete="off">
             @csrf
@@ -242,7 +243,7 @@
                         <option value="">Select Test Cycle</option>
                         <option value="1" {{ old('test_cycle') == '1' ? 'selected' : '' }}>1</option>
                         <option value="2" {{ old('test_cycle') == '2' ? 'selected' : '' }}>2</option>
-                        <option value="3" {{ old('test_cycle') == '3' ? 'selected' : '' }}>3</option>
+                        {{-- <option value="3" {{ old('test_cycle') == '3' ? 'selected' : '' }}>3</option> --}}
                     </select>
                     <p class="py-0 text-danger text-small" style="text-align-last: left !important">
                         @error('test_cycle')

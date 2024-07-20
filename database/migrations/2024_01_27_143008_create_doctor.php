@@ -28,8 +28,7 @@ return new class extends Migration
             $table->string('state')->nullable();
             $table->string('city')->nullable();
             $table->string('pincode')->nullable();
-            $table->string('lab_partners')->nullable();
-            $table->string('test_cycle')->nullable();
+            $table->string('user_mr')->nullable();
             $table->timestamps();
             $table->longText("esign")->nullable();
         });

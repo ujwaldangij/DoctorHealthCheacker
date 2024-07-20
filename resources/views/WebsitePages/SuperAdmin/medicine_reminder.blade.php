@@ -127,8 +127,10 @@
                 <th>agent</th>
                 <th>agent contact</th>
                 <th>agent schedule datetime</th>
-                <th>result</th>
-                <th>upload report</th>
+                <th>D3 Result</th>
+                <th>D3 uploaded Report</th>
+                <th>Creatinine Result</th>
+                <th>Creatinine Report</th>
                 <th>Action</th>
             </tr>
             </thead>
@@ -137,8 +139,8 @@
                 <tr>
                     <td>{{ $doc->s_id }}</td>
                     <td class="footable-vis2ible" style="">
-                        @if ($doc->status == 'schedule')
-                            <span class="label label-warning">schedule</span>
+                        @if ($doc->status == 'scheduled')
+                            <span class="label label-warning">scheduled</span>
                         @endif
                         @if ($doc->status == 'agent align')
                             <span class="label label-danger">agent align</span>
@@ -146,8 +148,8 @@
                         @if ($doc->status == 'medicine reminder')
                             <span class="label label-primary">medicine reminder</span>
                         @endif
-                        @if ($doc->status == 'report upload')
-                            <span class="label label-info">report upload</span>
+                        @if ($doc->status == 'report uploaded')
+                            <span class="label label-info">report uploaded</span>
                         @endif
                     </td>
                     <td>{{ $doc->name }}</td>
@@ -180,9 +182,27 @@
                     @else
                         <td>{{ $doc->upload_report }}</td>
                     @endif
+                    <td>
+                        @if (!empty($doc->d3result))
+                            @if($doc->d3result < 25)
+                                <button class="btn btn-danger">{{ $doc->d3result }}</button>
+                            @else
+                                <button class="btn btn-success">{{ $doc->d3result }}</button>
+                            @endif
+                        @endif
+                    </td>
+                    {{-- <td>{{ $doc->upload_report }}</td> --}}
+                    @if (!empty($doc->creatinine))
+                        <td>
+                            <a href="{{ asset('creatinine/' . $doc->creatinine) }}" target="_blank">Open File</a>
+                        </td>
+                    @else
+                        <td>{{ $doc->creatinine }}</td>
+                    @endif
                     <td class="text-center footable-visible footable-last-column">
                         <div class="btn-group">
                             <a href="{{ route('medicine_reminder_get', ['id'=>$doc->s_id]) }}" class="btn-secondary btn btn-xs">medicine reminder</a>
+                            <a href="{{ route('schedule_reminder_get', ['id'=>$doc->s_id]) }}" class="btn-info btn btn-xs">schedule reminder</a>
                             {{-- <a href="https://thewhatsappmarketing.com/api/send?number={{ $doc->contact }}&type=text&message=Dear%20Doctor%20Please%20take%20your%20todays%20medicine&instance_id=65B654523DFFD&access_token=65742a6cedff6"
                                 class="btn-success btn btn-xs"
                                 onclick="openLinkAndShowAlert(event)"
