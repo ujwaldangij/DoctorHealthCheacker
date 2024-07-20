@@ -9,6 +9,7 @@ DoctorHealthChecker is a comprehensive health management system developed for So
 ![DoctorHealthChecker dashboard2](public/git/d2.png)
 ![DoctorHealthChecker dashboard3](public/git/d3.png)
 ![DoctorHealthChecker dashboard4](public/git/d4.png)
+![DoctorHealthChecker dashboard4](public/git/d5.png)
 ## About the Project
 
 - **Purpose**: To enhance the efficiency of health management and ensure timely medication and test monitoring for doctors.
